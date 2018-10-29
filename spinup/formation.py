@@ -75,9 +75,11 @@ class Formation:
         ]
     }
 
-    def __init__(self, basename, options=None):
+    def __init__(self, basename=None, options=None):
         self.t = Template()
         self.tags = Tags()
+        if basename is None:
+            basename = 'spinup'
         self.basename = basename
         opts = defaultdict(bool)
         opts['vpc'] = True

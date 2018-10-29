@@ -26,7 +26,7 @@ def cli():
 @click.option('--redis', is_flag=True, default=False, help='Include redis (ElastiCache)')
 @click.option('--elasticsearch', is_flag=True, default=False, help='Include ElasticSearch')
 def formation(filename, eks, postgres, redis, elasticsearch):
-    formation = Formation(options={eks: eks, postgres: postgres, redis: redis, elasticsearch: elasticsearch})
+    formation = Formation(options=dict(eks=eks, postgres=postgres, redis=redis, elasticsearch=elasticsearch))
     if filename == '-':
         print(formation.json())
     else:
