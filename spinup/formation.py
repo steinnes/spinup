@@ -496,11 +496,11 @@ class Formation:
             "{}postgres".format(self.basename),
             AllocatedStorage=Ref(dballocatedstorage),
             DBInstanceClass=Ref(dbclass),
-            DBName="db",
-            DBParameterGroupName='postgresql-production-9-6',
+            DBName=Ref(db_username),
+            DBParameterGroupName='postgresql-production-10',
             DBSubnetGroupName=Ref(db_subnet_groups),
             Engine="postgres",
-            EngineVersion="9.6",
+            EngineVersion="10",
             MasterUserPassword=Ref(db_password),
             MasterUsername=Ref(db_username),
             VPCSecurityGroups=[Ref(db_sg)],
@@ -517,7 +517,8 @@ class Formation:
                 GetAtt(self.db, "Endpoint.Address"),
                 ":",
                 GetAtt(self.db, "Endpoint.Port"),
-                "/db"
+                "/",
+                Ref(db_username),
             ])
         ))
 
