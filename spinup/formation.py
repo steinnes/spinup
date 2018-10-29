@@ -300,7 +300,16 @@ class Formation:
             Default="m5.large",
             Description="Choose EKS worker node instance type",
             Type="String",
-            AllowedValues=["t2.medium", "m5.large", "m5.xlarge", "c5.large", "c5.xlarge"],
+            AllowedValues=[
+                "t2.micro",
+                "t2.small",
+                "m3.medium",
+                "t2.medium",
+                "m5.large",
+                "m5.xlarge",
+                "c5.large",
+                "c5.xlarge"
+            ],
         ))
 
         node_count = self.t.add_parameter(Parameter(
