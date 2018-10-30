@@ -54,3 +54,21 @@ spec:
       port: 8080
       name: admin
   type: NodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: traefik-proxy
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: traefik.grid.is
+    external-dns.alpha.kubernetes.io/ttl: 300
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:acm:eu-west-1:065357747629:certificate/a1ce7bf3-a4c8-495a-ae5c-4bae5993b6f9"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
+spec:
+  type: LoadBalancer
+  selector:
+    app: traefik-proxy
+    tier: proxy
+  ports:
+  - port: 443
+    targetPort: 80
