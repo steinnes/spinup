@@ -72,7 +72,7 @@ def get_stack(stackname):
 
 
 @contextmanager
-def template_file(tplfile, d):
+def template_file(tplfile, d={}):
     with tempfile.NamedTemporaryFile(mode='w') as tmpf:
         with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'tpl', tplfile)) as tplf:
             template = tplf.read()

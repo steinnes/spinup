@@ -104,6 +104,16 @@ def setup_datadog(dd_api_key):
             execute("kubectl apply -f {}".format(tmpf))
 
 
+def setup_traefik():
+    templates = [
+        'traefik-rbac.yaml',
+        'traefik-svc-depl.yaml',
+    ]
+    for template in templates:
+        with template_file(template) as tmpf:
+            execute("kubectl apply -f {}".format(tmpf))
+
+
 @cli.command('kubeconfig')
 @click.argument('stackname')
 @click.option('--remove', is_flag=True, default=False, help='instead of adding a stack to kubeconfig, remove it!')
@@ -200,8 +210,24 @@ def datadog(stackname, api_key):
         click.echo(("-- {0} stack not found in ~/.kube/config!\n"
                     "run spinup kubeconfig {0} before finishing setup").format(stackname))
         return
+    # 2. Use the stack context
     execute("kubectl config use-context {}".format(stackname))
+    # 3. Setup the k8s resources for datadog
     setup_datadog(api_key)
+
+
+@cli.command('traefik')
+@click.argument('stackname')
+def traefik(stackname):
+    # 1. Check if this stack has been setup in the local kubeconfig
+    if not _check_if_kubeconfig_has_stack_configured(stackname):
+        click.echo(("-- {0} stack not found in ~/.kube/config!\n"
+                    "run spinup kubeconfig {0} before finishing setup").format(stackname))
+        return
+    # 2. Use the stack context
+    execute("kubectl config use-context {}".format(stackname))
+    # 3. Setup the k8s resources for traefik
+    setup_traefik()
 
 
 @cli.command('config')
