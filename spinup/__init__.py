@@ -115,12 +115,10 @@ def setup_traefik(stackname):
     click.echo(" - we will setup a default LoadBalancer service pointint to the proxy")
     click.echo(" - it is recommended to use a wildcard *.yourdomain.com SSL certificate with it")
     tpl_vars = {}
-    tpl_vars['acm_arn'] = click.prompt("Please enter the SSL certificate ARN: ")
-    root_domain = tpl_vars['root_domain'] = click.prompt("Please enter the root domain (ie. yourdomain.com): ")
+    tpl_vars['acm_ssl_arn'] = click.prompt("Please enter the SSL certificate ARN")
+    root_domain = tpl_vars['root_domain'] = click.prompt("Please enter the root domain (ie. yourdomain.com)")
     tpl_vars['traefik_root_hostname'] = f"{stackname}-traefik-root.{root_domain}"
     tpl_vars['traefik_webui_hostname'] = f"{stackname}-traefik-webui.{root_domain}"
-    print(tpl_vars)
-    return
     for template in templates:
         with template_file(template, tpl_vars) as tmpf:
             execute("kubectl apply -f {}".format(tmpf))
