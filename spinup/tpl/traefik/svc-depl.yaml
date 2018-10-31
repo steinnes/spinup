@@ -1,15 +1,8 @@
 ---
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: traefik-ingress-controller
-  namespace: kube-system
----
 kind: Deployment
 apiVersion: extensions/v1beta1
 metadata:
   name: traefik-ingress-controller
-  namespace: kube-system
   labels:
     k8s-app: traefik-ingress-lb
 spec:
@@ -37,12 +30,12 @@ spec:
         - --api
         - --kubernetes
         - --logLevel=INFO
+        - --kubernetes.ingressendpoint.publishedservice=default/traefik-proxy
 ---
 kind: Service
 apiVersion: v1
 metadata:
   name: traefik-ingress-service
-  namespace: kube-system
 spec:
   selector:
     k8s-app: traefik-ingress-lb
@@ -60,15 +53,13 @@ kind: Service
 metadata:
   name: traefik-proxy
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: traefik.grid.is
-    external-dns.alpha.kubernetes.io/ttl: 300
-    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:acm:eu-west-1:065357747629:certificate/a1ce7bf3-a4c8-495a-ae5c-4bae5993b6f9"
+    external-dns.alpha.kubernetes.io/hostname: %traefik_root_hostname%
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "%acm_ssl_arn%"
     service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
 spec:
   type: LoadBalancer
   selector:
-    app: traefik-proxy
-    tier: proxy
+    k8s-app: traefik-ingress-lb
   ports:
   - port: 443
     targetPort: 80

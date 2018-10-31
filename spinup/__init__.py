@@ -104,13 +104,25 @@ def setup_datadog(dd_api_key):
             execute("kubectl apply -f {}".format(tmpf))
 
 
-def setup_traefik():
+def setup_traefik(stackname):
     templates = [
-        'traefik-rbac.yaml',
-        'traefik-svc-depl.yaml',
+        'traefik/rbac.yaml',
+        'traefik/svc-depl.yaml',
+        'traefik/web-ui.yaml',
     ]
+    # 1. Get ACM certificate ARN
+    click.echo("Setting traefik up as an ingress controller..")
+    click.echo(" - we will setup a default LoadBalancer service pointint to the proxy")
+    click.echo(" - it is recommended to use a wildcard *.yourdomain.com SSL certificate with it")
+    tpl_vars = {}
+    tpl_vars['acm_arn'] = click.prompt("Please enter the SSL certificate ARN: ")
+    root_domain = tpl_vars['root_domain'] = click.prompt("Please enter the root domain (ie. yourdomain.com): ")
+    tpl_vars['traefik_root_hostname'] = f"{stackname}-traefik-root.{root_domain}"
+    tpl_vars['traefik_webui_hostname'] = f"{stackname}-traefik-webui.{root_domain}"
+    print(tpl_vars)
+    return
     for template in templates:
-        with template_file(template) as tmpf:
+        with template_file(template, tpl_vars) as tmpf:
             execute("kubectl apply -f {}".format(tmpf))
 
 
@@ -227,7 +239,7 @@ def traefik(stackname):
     # 2. Use the stack context
     execute("kubectl config use-context {}".format(stackname))
     # 3. Setup the k8s resources for traefik
-    setup_traefik()
+    setup_traefik(stackname)
 
 
 @cli.command('config')

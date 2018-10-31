@@ -18,7 +18,7 @@ metadata:
   namespace: kube-system
 spec:
   rules:
-  - host: traefik-ui.minikube
+  - host: %traefik_webui_hostname%
     http:
       paths:
       - path: /
