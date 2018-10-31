@@ -6,7 +6,7 @@ import tempfile
 import time
 import os
 
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, NoRegionError
 from contextlib import contextmanager
 
 
@@ -38,7 +38,11 @@ def execute(cmd):
 
 
 def get_stack(stackname):
-    client = boto3.client('cloudformation')
+    try:
+        client = boto3.client('cloudformation')
+    except NoRegionError:
+        click.echo("No region configured -- have you run aws configure?")
+        return None
 
     def _get_stack(stackname):
         try:
