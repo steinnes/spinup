@@ -18,10 +18,14 @@ rules:
       - extensions
     resources:
       - ingresses
+      - ingresses/status
     verbs:
+      - put
       - get
       - list
       - watch
+      - update
+      - patch
 ---
 apiVersion: v1
 kind: ServiceAccount
