@@ -18,10 +18,19 @@ rules:
       - extensions
     resources:
       - ingresses
+      - ingresses/status
     verbs:
+      - put
       - get
       - list
       - watch
+      - update
+      - patch
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: traefik-ingress-controller
 ---
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
@@ -34,4 +43,4 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: traefik-ingress-controller
-  namespace: kube-system
+  namespace: default

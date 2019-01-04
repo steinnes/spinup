@@ -26,7 +26,7 @@ def cli():
 @click.option('--redis', is_flag=True, default=False, help='Include redis (ElastiCache)')
 @click.option('--elasticsearch', is_flag=True, default=False, help='Include ElasticSearch')
 def formation(filename, eks, postgres, redis, elasticsearch):
-    formation = Formation(options={eks: eks, postgres: postgres, redis: redis, elasticsearch: elasticsearch})
+    formation = Formation(options=dict(eks=eks, postgres=postgres, redis=redis, elasticsearch=elasticsearch))
     if filename == '-':
         print(formation.json())
     else:
@@ -101,6 +101,26 @@ def setup_datadog(dd_api_key):
     ]
     for template in templates:
         with template_file(template, {'datadog_api_key': dd_api_key}) as tmpf:
+            execute("kubectl apply -f {}".format(tmpf))
+
+
+def setup_traefik(stackname):
+    templates = [
+        'traefik/rbac.yaml',
+        'traefik/svc-depl.yaml',
+        'traefik/web-ui.yaml',
+    ]
+    # 1. Get ACM certificate ARN
+    click.echo("Setting traefik up as an ingress controller..")
+    click.echo(" - we will setup a default LoadBalancer service pointint to the proxy")
+    click.echo(" - it is recommended to use a wildcard *.yourdomain.com SSL certificate with it")
+    tpl_vars = {}
+    tpl_vars['acm_ssl_arn'] = click.prompt("Please enter the SSL certificate ARN")
+    root_domain = tpl_vars['root_domain'] = click.prompt("Please enter the root domain (ie. yourdomain.com)")
+    tpl_vars['traefik_root_hostname'] = f"{stackname}-traefik-root.{root_domain}"
+    tpl_vars['traefik_webui_hostname'] = f"{stackname}-traefik-webui.{root_domain}"
+    for template in templates:
+        with template_file(template, tpl_vars) as tmpf:
             execute("kubectl apply -f {}".format(tmpf))
 
 
@@ -200,8 +220,24 @@ def datadog(stackname, api_key):
         click.echo(("-- {0} stack not found in ~/.kube/config!\n"
                     "run spinup kubeconfig {0} before finishing setup").format(stackname))
         return
+    # 2. Use the stack context
     execute("kubectl config use-context {}".format(stackname))
+    # 3. Setup the k8s resources for datadog
     setup_datadog(api_key)
+
+
+@cli.command('traefik')
+@click.argument('stackname')
+def traefik(stackname):
+    # 1. Check if this stack has been setup in the local kubeconfig
+    if not _check_if_kubeconfig_has_stack_configured(stackname):
+        click.echo(("-- {0} stack not found in ~/.kube/config!\n"
+                    "run spinup kubeconfig {0} before finishing setup").format(stackname))
+        return
+    # 2. Use the stack context
+    execute("kubectl config use-context {}".format(stackname))
+    # 3. Setup the k8s resources for traefik
+    setup_traefik(stackname)
 
 
 @cli.command('config')
