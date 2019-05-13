@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: traefik-proxy-nlb
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: nlb-test.grid.is
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+spec:
+  type: LoadBalancer
+  selector:
+    k8s-app: traefik-ingress-lb
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
