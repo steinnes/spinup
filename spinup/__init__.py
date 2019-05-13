@@ -30,7 +30,7 @@ def formation(basename, eks, postgres, redis, elasticsearch):
     if basename == '-':
         print(formation.json())
     else:
-        filename = f"{basename}.yaml"
+        filename = f"{basename}.json"
         with open(filename, 'w') as fp:
             fp.write(formation.json())
         click.echo("Wrote CF JSON to: '{}'".format(filename))
