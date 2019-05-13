@@ -21,7 +21,7 @@ def cli():
 
 @cli.command('formation')
 @click.argument('filename')
-@click.option('--eks', is_flag=True, default=True, help='Include EKS')
+@click.option('--eks', is_flag=True, default=False, help='Include EKS')
 @click.option('--postgres', is_flag=True, default=False, help='Include postgres (RDS)')
 @click.option('--redis', is_flag=True, default=False, help='Include redis (ElastiCache)')
 @click.option('--elasticsearch', is_flag=True, default=False, help='Include ElasticSearch')
