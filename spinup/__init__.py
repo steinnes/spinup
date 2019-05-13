@@ -20,16 +20,17 @@ def cli():
 
 
 @cli.command('formation')
-@click.argument('filename')
+@click.argument('basename')
 @click.option('--eks', is_flag=True, default=False, help='Include EKS')
 @click.option('--postgres', is_flag=True, default=False, help='Include postgres (RDS)')
 @click.option('--redis', is_flag=True, default=False, help='Include redis (ElastiCache)')
 @click.option('--elasticsearch', is_flag=True, default=False, help='Include ElasticSearch')
-def formation(filename, eks, postgres, redis, elasticsearch):
-    formation = Formation(options=dict(eks=eks, postgres=postgres, redis=redis, elasticsearch=elasticsearch))
-    if filename == '-':
+def formation(basename, eks, postgres, redis, elasticsearch):
+    formation = Formation(basename=basename, options=dict(eks=eks, postgres=postgres, redis=redis, elasticsearch=elasticsearch))
+    if basename == '-':
         print(formation.json())
     else:
+        filename = f"{basename}.yaml"
         with open(filename, 'w') as fp:
             fp.write(formation.json())
         click.echo("Wrote CF JSON to: '{}'".format(filename))
