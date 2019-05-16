@@ -48,7 +48,7 @@ def _add_aws_user_to_kubeconfig(stackname, clustername, kubecfg_file=None):
     if kubecfg_file is None:
         kubecfg_file = '{}/.kube/config'.format(os.environ.get('HOME', ''))
     with open(kubecfg_file) as kubecfg:
-        parsed = yaml.load(kubecfg)
+        parsed = yaml.full_load(kubecfg)
 
     parsed['users'].append({
         'name': stackname,
@@ -73,7 +73,7 @@ def _check_if_kubeconfig_has_stack_configured(stackname, kubecfg_file=None):
         kubecfg_file = '{}/.kube/config'.format(os.environ.get('HOME', ''))
     try:
         with open(kubecfg_file) as kubecfg:
-            parsed = yaml.load(kubecfg)
+            parsed = yaml.full_load(kubecfg)
     except IOError:
         return False
 
@@ -198,7 +198,7 @@ def finish_setup(stackname):
 
     # 4. setup kubernetes dashboard (and heapster + influxdb)
     manifests = [
-        "https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml",  # noqa
+        "https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml",  # noqa
         "https://raw.githubusercontent.com/kubernetes/heapster/master/deploy/kube-config/influxdb/heapster.yaml",
         "https://raw.githubusercontent.com/kubernetes/heapster/master/deploy/kube-config/influxdb/influxdb.yaml",
         "https://raw.githubusercontent.com/kubernetes/heapster/master/deploy/kube-config/rbac/heapster-rbac.yaml",
