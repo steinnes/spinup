@@ -39,7 +39,7 @@ def execute(cmd):
 
 def get_stack(stackname):
     try:
-        client = boto3.client('cloudformation')
+        client = boto3.client('cloudformation', region_name=os.environ.get('AWS_REGION', 'eu-west-1'))
     except NoRegionError:
         click.echo("No region configured -- have you run aws configure?")
         return None
