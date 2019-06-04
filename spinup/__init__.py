@@ -20,16 +20,17 @@ def cli():
 
 
 @cli.command('formation')
-@click.argument('filename')
-@click.option('--eks', is_flag=True, default=True, help='Include EKS')
+@click.argument('basename')
+@click.option('--eks', is_flag=True, default=False, help='Include EKS')
 @click.option('--postgres', is_flag=True, default=False, help='Include postgres (RDS)')
 @click.option('--redis', is_flag=True, default=False, help='Include redis (ElastiCache)')
 @click.option('--elasticsearch', is_flag=True, default=False, help='Include ElasticSearch')
-def formation(filename, eks, postgres, redis, elasticsearch):
-    formation = Formation(options=dict(eks=eks, postgres=postgres, redis=redis, elasticsearch=elasticsearch))
-    if filename == '-':
+def formation(basename, eks, postgres, redis, elasticsearch):
+    formation = Formation(basename=basename, options=dict(eks=eks, postgres=postgres, redis=redis, elasticsearch=elasticsearch))
+    if basename == '-':
         print(formation.json())
     else:
+        filename = f"{basename}.json"
         with open(filename, 'w') as fp:
             fp.write(formation.json())
         click.echo("Wrote CF JSON to: '{}'".format(filename))
@@ -47,7 +48,7 @@ def _add_aws_user_to_kubeconfig(stackname, clustername, kubecfg_file=None):
     if kubecfg_file is None:
         kubecfg_file = '{}/.kube/config'.format(os.environ.get('HOME', ''))
     with open(kubecfg_file) as kubecfg:
-        parsed = yaml.load(kubecfg)
+        parsed = yaml.full_load(kubecfg)
 
     parsed['users'].append({
         'name': stackname,
@@ -72,7 +73,7 @@ def _check_if_kubeconfig_has_stack_configured(stackname, kubecfg_file=None):
         kubecfg_file = '{}/.kube/config'.format(os.environ.get('HOME', ''))
     try:
         with open(kubecfg_file) as kubecfg:
-            parsed = yaml.load(kubecfg)
+            parsed = yaml.full_load(kubecfg)
     except IOError:
         return False
 
@@ -197,7 +198,7 @@ def finish_setup(stackname):
 
     # 4. setup kubernetes dashboard (and heapster + influxdb)
     manifests = [
-        "https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml",  # noqa
+        "https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml",  # noqa
         "https://raw.githubusercontent.com/kubernetes/heapster/master/deploy/kube-config/influxdb/heapster.yaml",
         "https://raw.githubusercontent.com/kubernetes/heapster/master/deploy/kube-config/influxdb/influxdb.yaml",
         "https://raw.githubusercontent.com/kubernetes/heapster/master/deploy/kube-config/rbac/heapster-rbac.yaml",

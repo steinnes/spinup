@@ -1,0 +1,34 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"rbac.authorization.k8s.io/v1beta1","kind":"ClusterRole","metadata":{"annotations":{},"name":"traefik-ingress-controller","namespace":""},"rules":[{"apiGroups":[""],"resources":["services","endpoints","secrets"],"verbs":["get","list","watch"]},{"apiGroups":["extensions"],"resources":["ingresses"],"verbs":["get","list","watch"]}]}
+  creationTimestamp: 2018-10-31T09:43:49Z
+  name: traefik-ingress-controller
+  resourceVersion: "220308"
+  selfLink: /apis/rbac.authorization.k8s.io/v1/clusterroles/traefik-ingress-controller
+  uid: 78323e83-dcf1-11e8-bc7c-0a4a585f9d30
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - services
+  - endpoints
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - extensions
+  resources:
+  - ingresses
+  - ingresses/status
+  verbs:
+  - put
+  - get
+  - list
+  - watch
+  - update
+  - patch

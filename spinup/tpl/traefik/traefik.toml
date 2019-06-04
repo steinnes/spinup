@@ -1,0 +1,11 @@
+# traefik.toml
+defaultEntryPoints = ["http", "terminated-tls"]
+[entryPoints]
+  [entryPoints.http]
+  address = ":80"
+    [entryPoints.http.redirect]
+      regex = "^http://(.*)"
+      replacement = "https://$1"
+      permanent = true
+  [entryPoints.terminated-tls]
+  address = ":8881"
