@@ -10,16 +10,14 @@ data:
       groups:
         - system:bootstrappers
         - system:nodes
-  mapUsers: |
-    - userarn: arn:aws:iam::065357747629:user/steinn
-      username: admin
-      groups:
-        - system:masters
-    - userarn: arn:aws:iam::065357747629:user/borgar
-      username: admin
-      groups:
-        - system:masters
-    - userarn: arn:aws:iam::065357747629:user/autodeploy
-      username: admin
-      groups:
-        - system:masters
+# Here you can add several IAM user mappings so you (and your coworkers,
+# or bots) can access the kubernetes API. examples:
+#  mapUsers: |
+#    - userarn: arn:aws:iam::123456:user/steinn
+#      username: admin
+#      groups:
+#        - system:masters
+#    - userarn: arn:aws:iam::123456:user/autodeploy
+#      username: admin
+#      groups:
+#        - system:masters
