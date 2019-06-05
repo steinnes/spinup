@@ -1,5 +1,13 @@
 # spinup
 
+## DEPRECATION WARNING
+
+This tool is not being actively developed and is available here for
+educational purposes.  If you want a nice way to get up and running
+with EKS, I suggest you check out [eksctl](https://github.com/weaveworks/eksctl).
+
+---
+
 Quickly get up and running with an EKS cluster in a brand new VPC.  Because
 doing that by hand is extremely tedious.
 
