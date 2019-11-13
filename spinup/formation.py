@@ -83,7 +83,7 @@ class Formation:
         self.basename = basename
         opts = defaultdict(bool)
         opts['vpc'] = True
-        opts['eks'] = True
+        # opts['eks'] = True
 
         if options is not None:
             opts.update(options)
@@ -232,6 +232,12 @@ class Formation:
                     NetworkAclId=Ref(self.network_acl),
                 )
             )
+            t.add_output(Output(
+                f"subnet{zone}",
+                Description="VPC subnet",
+                Value=Ref(subnet)
+            ))
+
 
     def create_eks(self):
         """ Create an EKS cluster inside the given VPC """
@@ -451,8 +457,8 @@ class Formation:
             VpcId=Ref(self.vpc)
         ))
 
-        self.ingress(self.eks_node_sg, db_sg, port=5432, deps=self.eks_node_sg.name,
-            description="Allow k8s nodes (and pods) to connect to RDS")
+        # self.ingress(self.eks_node_sg, db_sg, port=5432, deps=self.eks_node_sg.name,
+        #     description="Allow k8s nodes (and pods) to connect to RDS")
 
         db_subnet_groups = self.t.add_resource(rds.DBSubnetGroup(
             "{}DBSubnetGroup".format(self.basename),
@@ -503,6 +509,7 @@ class Formation:
             EngineVersion="10",
             MasterUserPassword=Ref(db_password),
             MasterUsername=Ref(db_username),
+            StorageEncrypted=True,
             VPCSecurityGroups=[Ref(db_sg)],
         ))
         self.t.add_output(Output(
@@ -531,9 +538,9 @@ class Formation:
             Tags=self.tags,
         ))
 
-        self.ingress(self.eks_node_sg, rediscluster_sg, port=6379,
-            description="Allow k8s nodes (and pods) to connect to redis",
-            deps=[rediscluster_sg.name, self.eks_node_sg.name])
+        # self.ingress(self.eks_node_sg, rediscluster_sg, port=6379,
+        #     description="Allow k8s nodes (and pods) to connect to redis",
+        #     deps=[rediscluster_sg.name, self.eks_node_sg.name])
 
         redis_node_type = self.t.add_parameter(Parameter(
             "RedisNodeType",
