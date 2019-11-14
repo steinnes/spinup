@@ -4,6 +4,7 @@ import os
 import tempfile
 import yaml
 
+from spinup.eksctl import generate_eksctl_yaml
 from .formation import Formation
 
 from .utils import (
@@ -12,6 +13,8 @@ from .utils import (
     snake_and_caps,
     template_file,
 )
+
+region = os.environ.get('AWS_REGION', 'eu-west-1')
 
 
 @click.group()
@@ -34,7 +37,6 @@ def formation(basename, eks, postgres, redis, elasticsearch):
         with open(filename, 'w') as fp:
             fp.write(formation.json())
         click.echo("Wrote CF JSON to: '{}'".format(filename))
-    region = os.environ.get('AWS_REGION', 'eu-west-1')
     click.echo("")
     click.echo(".. Now use the CloudFormation web console to create a stack from this json")
     click.echo(
@@ -129,7 +131,7 @@ def setup_traefik(stackname):
 @click.argument('stackname')
 @click.option('--remove', is_flag=True, default=False, help='instead of adding a stack to kubeconfig, remove it!')
 def kubeconfig(stackname, remove):
-    stack = get_stack(stackname)
+    stack = get_stack(stackname, region)
 
     if stack is None:
         return
@@ -175,7 +177,7 @@ def kubeconfig(stackname, remove):
 @click.argument('stackname')
 def finish_setup(stackname):
     """ Finish stack setup (create/update k8s resources mostly)"""
-    stack = get_stack(stackname)
+    stack = get_stack(stackname, region)
 
     if stack is None:
         return
@@ -245,7 +247,7 @@ def traefik(stackname):
 @click.argument('stackname')
 def config(stackname):
     """ Dump the stack outputs formatted in config/env style (caps + snake case) """
-    stack = get_stack(stackname)
+    stack = get_stack(stackname, region)
     if stack is None:
         return
 
@@ -255,6 +257,21 @@ def config(stackname):
                 key=snake_and_caps(key),
                 value=value
             ))
+
+
+@cli.command('eksctl')
+@click.argument('stackname')
+def eksctl(stackname):
+    """Generate eksctl configuration for a spinup stack"""
+    stack = get_stack(stackname, region)
+    if stack is None:
+        return
+
+    eksctl_config = generate_eksctl_yaml(stack, region)
+    filename = f"{stackname}.yaml"
+    with open(filename, 'w') as f:
+        f.write(yaml.dump(eksctl_config))
+    click.echo("Wrote eksctl yaml to: '{}'".format(filename))
 
 
 if __name__ == "__main__":

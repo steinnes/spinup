@@ -100,6 +100,12 @@ class Formation:
         if opts['elasticsearch']:
             self.create_elasticsearch()
 
+        self.t.add_output(Output(
+            "basename",
+            Description="Stack base name",
+            Value=self.basename
+        ))
+
     def serial_name(self, name):
         if not hasattr(self, '_series') or getattr(self, '_series') is None:
             self._series = defaultdict(int)
@@ -161,6 +167,18 @@ class Formation:
             CidrBlock=self.VPC_CONFIG['cidr'],
             InstanceTenancy='default',
             Tags=self.tags
+        ))
+
+        self.eks_node_sg = self.t.add_resource(SecurityGroup(
+            "eksNodeSecurityGroup",
+            VpcId=Ref(self.vpc),
+            GroupDescription="Security group for all nodes in the cluster",
+            Tags=self.tags + Tags({"kubernetes.io/cluster/{}".format(self.basename): "owned"}),
+        ))
+        self.t.add_output(Output(
+            "eksNodeSecurityGroup",
+            Description="EKS node security group",
+            Value=Ref(self.eks_node_sg)
         ))
 
         self.igw = t.add_resource(InternetGateway(
@@ -233,11 +251,21 @@ class Formation:
                 )
             )
             t.add_output(Output(
-                f"subnet{zone}",
+                name,
                 Description="VPC subnet",
                 Value=Ref(subnet)
             ))
+            t.add_output(Output(
+                f"{name}AvailabilityZone",
+                Description="AZ of VPC subnet",
+                Value=GetAtt(subnet, "AvailabilityZone")
+            ))
 
+        t.add_output(Output(
+            "NumberOfSubnets",
+            Description="Number of subnets in the VPC",
+            Value=str(len(self.VPC_CONFIG['subnets']))
+        ))
 
     def create_eks(self):
         """ Create an EKS cluster inside the given VPC """
@@ -393,12 +421,6 @@ class Formation:
             Roles=[Ref(eks_node_instance_role)],
         ))
 
-        self.eks_node_sg = self.t.add_resource(SecurityGroup(
-            "eksNodeSecurityGroup",
-            VpcId=Ref(self.vpc),
-            GroupDescription="Security group for all nodes in the cluster",
-            Tags=self.tags + Tags({"kubernetes.io/cluster/{}".format(self.basename): "owned"}),
-        ))
         # allow all traffic between EKS cluster and EKS nodes
         self.ingress(self.eks_cluster_sg, self.eks_node_sg, proto="-1", deps=self.eks_node_sg.name)
         self.egress(self.eks_cluster_sg, self.eks_node_sg, proto="-1", deps=self.eks_node_sg.name)
@@ -457,8 +479,8 @@ class Formation:
             VpcId=Ref(self.vpc)
         ))
 
-        # self.ingress(self.eks_node_sg, db_sg, port=5432, deps=self.eks_node_sg.name,
-        #     description="Allow k8s nodes (and pods) to connect to RDS")
+        self.ingress(self.eks_node_sg, db_sg, port=5432, deps=self.eks_node_sg.name,
+            description="Allow k8s nodes (and pods) to connect to RDS")
 
         db_subnet_groups = self.t.add_resource(rds.DBSubnetGroup(
             "{}DBSubnetGroup".format(self.basename),
@@ -538,9 +560,9 @@ class Formation:
             Tags=self.tags,
         ))
 
-        # self.ingress(self.eks_node_sg, rediscluster_sg, port=6379,
-        #     description="Allow k8s nodes (and pods) to connect to redis",
-        #     deps=[rediscluster_sg.name, self.eks_node_sg.name])
+        self.ingress(self.eks_node_sg, rediscluster_sg, port=6379,
+            description="Allow k8s nodes (and pods) to connect to redis",
+            deps=[rediscluster_sg.name, self.eks_node_sg.name])
 
         redis_node_type = self.t.add_parameter(Parameter(
             "RedisNodeType",

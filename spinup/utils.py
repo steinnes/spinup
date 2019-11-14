@@ -37,9 +37,9 @@ def execute(cmd):
     return out
 
 
-def get_stack(stackname):
+def get_stack(stackname, region_name):
     try:
-        client = boto3.client('cloudformation', region_name=os.environ.get('AWS_REGION', 'eu-west-1'))
+        client = boto3.client('cloudformation', region_name=region_name)
     except NoRegionError:
         click.echo("No region configured -- have you run aws configure?")
         return None
@@ -54,7 +54,7 @@ def get_stack(stackname):
 
     stack = _get_stack(stackname)
     if stack is None:
-        click.echo("Can't find stack with name '{}'".format(stackname))
+        click.echo(f"Can't find stack with name '{stackname}' in region {region_name}")
         resp = client.list_stacks(StackStatusFilter=['CREATE_IN_PROGRESS', 'CREATE_COMPLETE'])
         stacks = resp['StackSummaries']
         if len(stacks) > 0:
