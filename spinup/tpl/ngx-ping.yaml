@@ -1,0 +1,57 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ngx-ping
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /ping
+        backend:
+          serviceName: ngx-ping
+          servicePort: http
+---
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: ngx-ping
+  labels:
+    k8s-app: ngx-ping
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: ngx-ping
+  template:
+    metadata:
+      labels:
+        k8s-app: ngx-ping
+    spec:
+      containers:
+      - name: ngx-ping
+        image: arniinaba/ngx-ping
+        ports:
+        - containerPort: 5001
+        args:
+        - nginx
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  name: ngx-ping
+  selfLink: /api/v1/namespaces/default/services/ngx-ping
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 5001
+  selector:
+    k8s-app: ngx-ping
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}
